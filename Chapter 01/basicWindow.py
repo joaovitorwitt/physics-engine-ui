@@ -13,7 +13,7 @@ class EmptyWindow(QWidget):
 
     def initializeUI(self):
         # set up application
-        self.setGeometry(200,100,400,300)
+        self.setGeometry(300,100,800,600)
         self.setWindowTitle("Physics Engine")
 
         # display window on the screen
