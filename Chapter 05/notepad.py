@@ -71,7 +71,7 @@ class MainWindow(QMainWindow):
         self.pasteAction.setShortcut("Ctrl+V")
         self.pasteAction.triggered.connect(self.textInput.paste)
 
-        self.findAction = QAction(QAction("images/find.png"), "Find")
+        self.findAction = QAction(QIcon("images/find.png"), "Find")
         self.findAction.setShortcut("Ctrl+F")
         self.findAction.triggered.connect(self.searchText)
 
@@ -87,7 +87,6 @@ class MainWindow(QMainWindow):
         self.highlightAction = QAction(QIcon("images/highlight.png"), "Highlight")
         self.highlightAction.setShortcut("Ctrl+Shift+H")
         self.colorAction.triggered.connect(self.chooseFontBackgroundColor)
-
 
         # create actions for HELP menu
         self.aboutAction = QAction("About")
@@ -136,6 +135,108 @@ class MainWindow(QMainWindow):
         # create HELP menu and add actions
         helpMenu = self.menuBar().addMenu("Help")
         helpMenu.addAction(self.aboutAction)
+
+
+    def clearText(self):
+        # clear input field
+        answer = QMessageBox.question(self, "Clear Text", "Do you want to clear the text?",
+                                    QMessageBox.StandardButton.No | \
+                                    QMessageBox.StandardButton.Yes,
+                                    QMessageBox.StandardButton.Yes)
+
+        if answer == QMessageBox.StandardButton.Yes:
+            self.textInput.clear()
+
+    
+    def openFile(self):
+        # clear text or html file and display its contents
+        fileName, _ = QFileDialog.getOpenFileName(self, "Open File", "", "HTML files (*.html);;Text Files (*.txt)")
+
+        if fileName:
+            with open(fileName, "r") as f:
+                notepadText = f.read()
+            self.textInput.setText(notepadText)
+
+
+    def saveFile(self):
+        # if the save button is clicked, ask user how they want to save the file
+        fileName, _ = QFileDialog.getSaveFileName(self, "Save File", "", "HTML Files (*.html);;Text Files (*.txt)")
+
+        if fileName.endswith(".txt"):
+            notepadText = self.textInput.toPlainText()
+            with open(fileName, "w") as f:
+                f.write(notepadText)
+
+        elif fileName.endswith(".html"):
+            notepadRichText = self.textInput.toHtml()
+            with open(fileName, "w") as f:
+                f.write(notepadRichText)
+
+        else:
+            QMessageBox.information(self, "Not Saved", "Text not saved.", QMessageBox.StandardButton.Ok)
+
+    
+    def searchText(self):
+        # input dialog to ask user for search text
+        findText, ok = QInputDialog.getText(self, "Search Text", "Find:")
+
+        if ok:
+            extraSelections = []
+
+            # set cursor to the beginning
+            self.textInput.moveCursor(
+                QTextCursor.MoveOperation.Start
+            )
+            color = QColor(Qt.GlobalColor.gray)
+
+            while (self.textInput.find(findText)):
+                # mark the text searched for as gray
+                selection = QTextEdit.ExtraSelection()
+                selection.format.setBackground(color)
+
+                selection.cursor = self.textInput.textCursor()
+                extraSelections.append(selection)
+
+            # highlight all selections in the QTextEdit widget
+            self.textInput.setExtraSelections(extraSelections)
+
+    def removeHighlights(self):
+        # reset selections after editing text
+        self.textInput.setExtraSelections([])
+
+
+    def chooseFont(self):
+        # select a font from the QFontDialog
+        current = self.textInput.currentFont()
+
+        option = QFontDialog.FontDialogOption.DontUseNativeDialog
+        font, ok = QFontDialog.getFont(current, self, options=option)
+
+        if ok:
+            self.textInput.setCurrentFont(font)
+
+    
+    def chooseFontColor(self):
+        # select a font from the QColorDialog
+        color = QColorDialog.getColor()
+
+        if color.isValid():
+            self.textInput.setTextColor(color)
+
+    
+    def chooseFontBackgroundColor(self):
+        # select a color for texts background
+        color = QColorDialog.getColor()
+
+        if color.isValid():
+            self.textInput.setTextBackgroundColor(color)
+
+
+    def aboutDialog(self):
+        # display the ABOUT dialog
+        QMessageBox.about(self, "About Notepad", """<p>Beginner's Practical Guide to PyQt</p>
+                                                    <p>Project 5.1 - Notepad GUI</p>""")
+
 
 
 if __name__ == "__main__":
